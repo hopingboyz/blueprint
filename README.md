@@ -38,7 +38,9 @@ bash <(curl -fsSL https://raw.githubusercontent.com/hopingboyz/blueprint/main/bl
 
 Run this command to automatically install addons:
 
+```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/hopingboyz/blueprint/main/addon-installer.sh)
+```
 
 ------------------------------------------------------------
 📂 FEATURES
