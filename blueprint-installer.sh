@@ -27,6 +27,8 @@ cat << "EOF"
  |  _ <| |   | |  | |  __| |  ___/|  _  /  | | | . ` |  | |        | | | . ` |\___ \   | | / /\ \ | |    | |    |  __| |  _  / 
  | |_) | |___| |__| | |____| |    | | \ \ _| |_| |\  |  | |       _| |_| |\  |____) |  | |/ ____ \| |____| |____| |____| | \ \ 
  |____/|______\____/|______|_|    |_|  \_\_____|_| \_|  |_|      |_____|_| \_|_____/   |_/_/    \_\______|______|______|_|  \_\
+
+ Made By Smith
 EOF
 echo -e "${RESET}"
 
@@ -68,7 +70,7 @@ require() {
 
 #============ CHECK IF ALREADY INSTALLED ============#
 check_already_installed() {
-    if [[ -f "/var/www/pterodactyl/.blueprint-installed" ]]; then
+    if [[ -f "/var/www/reviactyl/.blueprint-installed" ]]; then
         echo -e "${YELLOW}⚠️  Blueprint appears to be already installed.${RESET}"
         read -p "Do you want to reinstall? (y/N): " -n 1 -r
         echo
@@ -131,8 +133,8 @@ main() {
     done
 
     #============ VERIFY PTERODACTYL DIR ============#
-    if [[ ! -d "/var/www/pterodactyl" ]]; then
-        fail "/var/www/pterodactyl directory not found. Install Pterodactyl first!"
+    if [[ ! -d "/var/www/reviactyl" ]]; then
+        fail "/var/www/reviactyl directory not found. Install Pterodactyl first!"
     fi
 
     cd /var/www/pterodactyl || fail "Unable to enter Pterodactyl directory"
@@ -194,9 +196,9 @@ main() {
     log "Frontend dependencies installed"
 
     #============ BLUEPRINT CONFIG ============#
-    if [[ ! -f "/var/www/pterodactyl/.blueprintrc" ]]; then
+    if [[ ! -f "/var/www/reviactyl/.blueprintrc" ]]; then
         loading "Creating .blueprintrc"
-        cat <<EOF | sudo tee /var/www/pterodactyl/.blueprintrc >/dev/null
+        cat <<EOF | sudo tee /var/www/reviactyl/.blueprintrc >/dev/null
 WEBUSER="www-data"
 OWNERSHIP="www-data:www-data"
 USERSHELL="/bin/bash"
@@ -208,18 +210,18 @@ EOF
     fi
 
     #============ RUN BLUEPRINT INSTALLER ============#
-    if [[ ! -f "/var/www/pterodactyl/blueprint.sh" ]]; then
+    if [[ ! -f "/var/www/reviactyl/blueprint.sh" ]]; then
         fail "blueprint.sh missing! Extraction failed!"
     fi
 
     loading "Fixing permissions"
-    sudo chmod +x /var/www/pterodactyl/blueprint.sh
+    sudo chmod +x /var/www/reviactyl/blueprint.sh
 
     loading "Running Blueprint installer"
-    sudo bash /var/www/pterodactyl/blueprint.sh || fail "Blueprint failed to run"
+    sudo bash /var/www/reviactyl/blueprint.sh || fail "Blueprint failed to run"
 
     #============ MARK AS INSTALLED ============#
-    sudo touch /var/www/pterodactyl/.blueprint-installed
+    sudo touch /var/www/reviactyl/.blueprint-installed
     log "Blueprint installation completed successfully"
 
     #============ COMPLETE ============#
