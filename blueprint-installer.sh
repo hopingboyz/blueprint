@@ -138,26 +138,16 @@ main() {
     cd /var/www/pterodactyl || fail "Unable to enter Pterodactyl directory"
 
     #============ DOWNLOAD LATEST BLUEPRINT ============#
-    loading "Fetching latest Blueprint release"
-
-    LATEST_URL=$(curl -s https://api.github.com/repos/BlueprintFramework/framework/releases/latest \
-        | grep '"browser_download_url"' \
-        | grep ".zip" \
-        | head -n 1 \
-        | cut -d '"' -f 4)
-
-    [[ -z "$LATEST_URL" ]] && fail "Failed to get latest release URL"
-
-    loading "Downloading Blueprint"
-    wget -q "$LATEST_URL" -O blueprint.zip || fail "Download failed"
-
+    loading "Downloading latest Blueprint release"
+    
+    wget "https://github.com/BlueprintFramework/framework/releases/latest/download/release.zip" -O "$PTERODACTYL_DIRECTORY/release.zip" || fail "Download failed"
+    
     loading "Extracting Blueprint"
-    unzip -oq blueprint.zip || fail "Unzip failed"
-    rm -f blueprint.zip
+    unzip -o release.zip || fail "Unzip failed"
 
     #============ NODE.JS INSTALLATION ============#
-    if ! command -v node >/dev/null 2>&1 || ! node --version | grep -q "v20"; then
-        loading "Setting up Node.js 20"
+    if ! command -v node >/dev/null 2>&1 || ! node --version | grep -q "v22"; then
+        loading "Setting up Node.js 22"
 
         # Remove existing Node.js if wrong version
         if command -v node >/dev/null 2>&1; then
@@ -166,40 +156,36 @@ main() {
             sudo rm -rf /etc/apt/sources.list.d/nodesource.list
         fi
 
-        # Install Node.js 20 using NodeSource
-        curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - || fail "NodeSource setup failed"
+        # Install Node.js 22 using NodeSource
+        sudo mkdir -p /etc/apt/keyrings
+        curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+        echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list
         sudo apt update -y
         sudo apt install -y nodejs || fail "Node.js installation failed"
         
-        log "Node.js installed/updated to version 20"
+        log "Node.js installed/updated to version 22"
     else
-        loading "Node.js 20 already installed"
-        log "Node.js 20 already present"
+        loading "Node.js 22 already installed"
+        log "Node.js 22 already present"
     fi
 
     #============ YARN SETUP ============#
-    if ! command -v yarn >/dev/null 2>&1; then
-        loading "Installing Yarn"
-        sudo npm install -g corepack || fail "Corepack installation failed"
-        sudo corepack enable || fail "Corepack enable failed"
-        log "Yarn installed via corepack"
-    else
-        loading "Yarn already installed"
-        log "Yarn already present"
-    fi
+    loading "Installing Yarn globally"
+    sudo npm i -g yarn || fail "Failed to install Yarn"
+    log "Yarn installed"
 
     #============ FRONTEND DEPENDENCIES ============#
-    loading "Installing frontend dependencies"
-    yarn install --production=false || fail "Yarn failed to install dependencies"
+    loading "Installing Node.js dependencies with Yarn"
+    yarn install || fail "Yarn failed to install dependencies"
     log "Frontend dependencies installed"
 
     #============ BLUEPRINT CONFIG ============#
     if [[ ! -f "/var/www/pterodactyl/.blueprintrc" ]]; then
         loading "Creating .blueprintrc"
-        cat <<EOF | sudo tee /var/www/pterodactyl/.blueprintrc >/dev/null
-WEBUSER="www-data"
-OWNERSHIP="www-data:www-data"
-USERSHELL="/bin/bash"
+        cat <<'EOF' | sudo tee /var/www/pterodactyl/.blueprintrc >/dev/null
+WEBUSER="www-data";
+OWNERSHIP="www-data:www-data";
+USERSHELL="/bin/bash";
 EOF
         log "Created .blueprintrc configuration"
     else
